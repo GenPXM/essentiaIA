@@ -1,23 +1,31 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Patient } from './entities/patient.entity';
 import { Appointment } from './entities/appointment.entity';
-import { PatientsController } from './controllers/patients.controller';
+import { Patient } from './entities/patient.entity';
+import { Hour } from './entities/hour.entity';
 import { AppointmentsController } from './controllers/appointments.controller';
-import { PatientsService } from './services/patients.service';
+import { PatientsController } from './controllers/patients.controller';
+import { HoursController } from './controllers/hours.controller';
 import { AppointmentsService } from './services/appointments.service';
-import { AppDataSource } from './data-source';
-import { AuthModule } from './auth/auth.module';
-import { JwtModule } from '@nestjs/jwt';
-import { TtsController } from './tts/tts.controller';
+import { PatientsService } from './services/patients.service';
+import { HoursService } from './services/hours.service';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({ ...(AppDataSource.options as any), isGlobal: true }),
-    TypeOrmModule.forFeature([Patient, Appointment]),
-    AuthModule,
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      url: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
+      entities: [Appointment, Patient, Hour],
+      synchronize: true,
+      logging: false,
+    }),
+    TypeOrmModule.forFeature([Appointment, Patient, Hour]),
   ],
-  controllers: [PatientsController, AppointmentsController,TtsController],
-  providers: [PatientsService, AppointmentsService],
+  controllers: [AppointmentsController, PatientsController, HoursController],
+  providers: [AppointmentsService, PatientsService, HoursService],
 })
 export class AppModule {}

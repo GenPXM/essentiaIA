@@ -9,10 +9,15 @@ import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableCors({
+    origin: '*',
+    methods: 'GET,POST,PUT,PATCH,DELETE',
+    credentials: true,
+  });
 
   app.use(bodyParser.json({ limit: '1mb' }));
-  app.use('/audio', express.static(join(process.cwd())));
 
+  app.use('/audio', express.static(join(process.cwd())));
   const config = new DocumentBuilder()
     .setTitle('API de Agendamentos - EssentiaIA')
     .setDescription(
@@ -28,19 +33,20 @@ async function bootstrap() {
         description: 'Adicione o token JWT para endpoints protegidos.',
         in: 'header',
       },
-      'JWT-auth', 
+      'JWT-auth',
     )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document, {
     swaggerOptions: {
-      persistAuthorization: true, 
+      persistAuthorization: true,
     },
   });
+
   await app.listen(3000);
-  console.log('API listening on http://localhost:3000');
-  console.log('Swagger disponível em http://localhost:3000/api');
+  console.log('API rodando em: http://localhost:3000');
+  console.log('Swagger disponível em: http://localhost:3000/api');
 }
 
 bootstrap();

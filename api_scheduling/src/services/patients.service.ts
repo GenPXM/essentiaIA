@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Patient } from '../entities/patient.entity';
+import { CreatePatientDto } from '../dtos/create-patient.dto';
 
 @Injectable()
 export class PatientsService {
@@ -14,8 +15,8 @@ export class PatientsService {
     return this.repo.find();
   }
 
-  async create(data: Partial<Patient>) {
-    const p = this.repo.create(data);
-    return this.repo.save(p);
+  async create(data: CreatePatientDto) {
+    const patient = this.repo.create(data);
+    return this.repo.save(patient);
   }
 }
