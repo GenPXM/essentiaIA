@@ -1,11 +1,17 @@
 {
   "name": "nest-scheduling-project",
   "version": "1.0.0",
-  "description": "Minimal NestJS + TypeORM (SQLite) scheduling API for the challenge",
+  "description": "Minimal NestJS + TypeORM (SQLite/Postgres) scheduling API",
   "scripts": {
     "start": "ts-node -r tsconfig-paths/register src/main.ts",
     "start:dev": "ts-node-dev --respawn --transpile-only src/main.ts",
-    "seed": "ts-node src/seed.ts"
+    "seed": "ts-node src/seed.ts",
+    "typeorm": "npx typeorm -d src/data-source.ts",
+    "migration:generate": "npx typeorm-ts-node-commonjs migration:generate -d src/data-source.ts src/migrations/update-schema",
+    "migration:create": "npx typeorm migration:create src/migrations/manual",
+    "migration:run": "npx typeorm-ts-node-commonjs migration:run -d src/data-source.ts",
+    "migration:revert": "npx typeorm-ts-node-commonjs migration:revert -d src/data-source.ts",
+    "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",
@@ -24,6 +30,8 @@
     "nodemailer": "^7.0.9",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
+    "pg": "^8.16.3",
+    "react-icons": "^5.5.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
     "sqlite3": "^5.1.6",
@@ -34,7 +42,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^24.8.0",
     "@types/swagger-ui-express": "^4.1.8",
-    "ts-node": "^10.9.1",
+    "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^4.9.5"

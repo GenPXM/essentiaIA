@@ -1,14 +1,19 @@
+import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { Patient } from './entities/patient.entity';
 import { Appointment } from './entities/appointment.entity';
-import * as path from 'path';
+import { Hour } from './entities/hour.entity';
+import * as dotenv from 'dotenv';
 
-export const AppDataSource = new DataSource({
-  type: 'sqlite',
-  database: path.join(__dirname, '..', 'database.sqlite'),
-  entities: [Patient, Appointment],
-  synchronize: true,
-  logging: false,
+dotenv.config();
+export default new DataSource({
+  type: 'postgres',
+  url: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+  entities: [Patient, Appointment, Hour],
+  migrations: ['src/migrations/*.ts'],
+  synchronize: false,
+  logging: true,
 });
-
-export default AppDataSource;

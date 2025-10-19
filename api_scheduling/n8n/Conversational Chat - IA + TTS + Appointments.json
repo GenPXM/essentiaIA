@@ -1,140 +1,92 @@
 {
-  "name": "Conversational Chat - IA + TTS + Appointments",
+  "name": "Conversational Chat",
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "appointments",
-        "responseMode": "responseNode",
-        "options": {}
-      },
-      "id": "3ed61eff-3f03-4744-bea7-d1d8c5c54dcb",
-      "name": "Webhook - Receber Ação (/appointments)",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2.1,
-      "position": [
-        -48,
-        -384
-      ],
-      "webhookId": "5f212d28-4d45-4efc-ac4d-5af0c9186de3"
-    },
-    {
-      "parameters": {
-        "mode": "expression",
-        "numberOutputs": 3,
-        "output": "={{\n  $json[\"body\"][\"action\"] === \"listar\" ? 0 :\n  $json[\"body\"][\"action\"] === \"criar\" ? 1 :\n  $json[\"body\"][\"action\"] === \"cancelar\" ? 2 : 0\n}}",
-        "looseTypeValidation": true
-      },
-      "id": "a9dcbc10-99df-4394-98d3-d9df76546828",
-      "name": "Switch - Escolher Ação",
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3.3,
-      "position": [
-        192,
-        -384
-      ]
-    },
-    {
-      "parameters": {
-        "url": "https://7c168768c9c8.ngrok-free.app/appointments",
-        "options": {}
-      },
-      "id": "bfa86926-3140-4d90-abfd-7471d0bc4798",
-      "name": "Listar Agendamentos (GET)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 1,
-      "position": [
-        432,
-        -496
-      ]
-    },
-    {
-      "parameters": {
-        "requestMethod": "POST",
-        "url": "https://7c168768c9c8.ngrok-free.app/appointments",
-        "jsonParameters": true,
-        "options": {},
-        "bodyParametersJson": "={\n  \"patientId\": $json[\"body\"][\"patientId\"],\n  \"datetime\": $json[\"body\"][\"datetime\"],\n  \"service\": $json[\"body\"][\"service\"]\n}"
-      },
-      "id": "c0019300-7564-4b2e-9061-92b3ae6eb426",
-      "name": "Criar Agendamento (POST)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 1,
-      "position": [
-        432,
-        -384
-      ]
-    },
-    {
-      "parameters": {
-        "requestMethod": "DELETE",
-        "url": "={{\"https://7c168768c9c8.ngrok-free.app/appointments/\" + $json[\"body\"][\"id\"]}}",
-        "options": {}
-      },
-      "id": "058c9996-59db-43d7-a2b5-fd34f9050b98",
-      "name": "Cancelar Agendamento (DELETE)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 1,
-      "position": [
-        432,
-        -256
-      ]
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "id": "c0afcfc1-bdef-45cf-8f4f-5632ba5e6869",
-      "name": "Responder - Listar",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1,
-      "position": [
-        672,
-        -496
-      ]
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "id": "64814920-7b1d-46f3-9b60-6a22587063a3",
-      "name": "Responder - Criar",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1,
-      "position": [
-        672,
-        -384
-      ]
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "id": "0040f1c6-a92f-4595-9387-e94d011b120e",
-      "name": "Responder - Cancelar",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1,
-      "position": [
-        672,
-        -256
-      ]
-    },
-    {
-      "parameters": {
-        "httpMethod": "POST",
         "path": "chat",
-        "responseMode": "responseNode",
+        "responseMode": "lastNode",
         "options": {}
       },
-      "id": "0888dcd3-2064-45a1-8cf1-470631b4bdd1",
+      "id": "WebhookChat",
       "name": "Webhook - Chat Entrada (/chat)",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -48,
-        48
+        -800,
+        0
       ],
-      "webhookId": "211cc085-3114-451a-b15b-14c271423c47"
+      "webhookId": "unificado-chat"
+    },
+    {
+      "parameters": {
+        "mode": "upsert",
+        "key": "={{$json[\"body\"][\"sessionId\"] || \"default\"}}",
+        "value": "={{$json[\"body\"][\"message\"]}}"
+      },
+      "id": "StoreMessage",
+      "name": "Contexto - Armazenar Mensagem",
+      "type": "n8n-nodes-base.memory",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "get",
+        "key": "={{$json[\"body\"][\"sessionId\"] || \"default\"}}"
+      },
+      "id": "RetrieveHistory",
+      "name": "Contexto - Recuperar Histórico",
+      "type": "n8n-nodes-base.memory",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "Você é um assistente médico virtual.\nSe o paciente perguntar horários, diga “Verificando agenda”.\nSe quiser marcar, diga “Certo, vamos agendar”.\nSe quiser cancelar, diga “Cancelando agendamento”.\nResponda sempre de forma educada e objetiva.\nUse o histórico de mensagens para manter o contexto da conversa.",
+              "role": "system"
+            },
+            {
+              "content": "Histórico da sessão: {{$item(1).$json.value || \"(sem histórico)\"}}",
+              "role": "system"
+            },
+            {
+              "content": "={{$json[\"body\"][\"message\"]}}",
+              "role": "user"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ChatModel",
+      "name": "IA - Resposta Unificada",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -320,
+        0
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "y4jIJMtWYiH6DzZZ",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
     },
     {
       "parameters": {
@@ -147,39 +99,13 @@
           ]
         }
       },
-      "id": "01b13f84-6d2a-4451-aa8d-41319f4554df",
-      "name": "IF - Mensagem é áudio?",
+      "id": "CheckIfAudio",
+      "name": "IF - Entrada é Áudio?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
-        192,
-        48
-      ]
-    },
-    {
-      "parameters": {
-        "keepOnlySet": true,
-        "values": {
-          "string": [
-            {
-              "name": "type",
-              "value": "text"
-            },
-            {
-              "name": "response",
-              "value": "={{$json[\"response\"]}}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "id": "0bdd4b6a-d42e-412a-bf01-f077cdf46a88",
-      "name": "Formatar Resposta (Texto)",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 2,
-      "position": [
-        672,
-        -32
+        -80,
+        0
       ]
     },
     {
@@ -190,13 +116,13 @@
         "options": {},
         "bodyParametersJson": "={{ { \"text\": $json[\"message\"][\"content\"] } }}"
       },
-      "id": "f614b33b-4251-47ba-9070-6ea3642b05d5",
+      "id": "TTS",
       "name": "Gerar Áudio (TTS)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 1,
       "position": [
-        672,
-        128
+        160,
+        120
       ]
     },
     {
@@ -216,250 +142,139 @@
         },
         "options": {}
       },
-      "id": "043738a2-cd31-4659-aafa-ecd41f0e2101",
-      "name": "Formatar Resposta (Áudio)",
+      "id": "FormatAudio",
+      "name": "Formatar Resposta - Áudio",
       "type": "n8n-nodes-base.set",
       "typeVersion": 2,
       "position": [
-        912,
-        128
+        400,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "type",
+              "value": "text"
+            },
+            {
+              "name": "message",
+              "value": "={{$json[\"message\"][\"content\"]}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "FormatText",
+      "name": "Formatar Resposta - Texto",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        400,
+        -80
       ]
     },
     {
       "parameters": {
         "options": {}
       },
-      "id": "47e82805-021f-4de5-bafd-10bf98d89573",
+      "id": "Respond",
       "name": "Responder ao Chat",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        1152,
-        48
+        640,
+        0
       ]
-    },
-    {
-      "parameters": {
-        "modelId": {
-          "__rl": true,
-          "value": "gpt-4.1-mini",
-          "mode": "list",
-          "cachedResultName": "GPT-4.1-MINI"
-        },
-        "messages": {
-          "values": [
-            {
-              "content": "Você é um assistente médico virtual.\nSe o paciente perguntar horários, diga “Verificando agenda”.\nSe quiser marcar, diga “Certo, vamos agendar”.\nSe quiser cancelar, diga “Cancelando agendamento”.\nResponda sempre de forma educada e objetiva.",
-              "role": "system"
-            },
-            {
-              "content": "=={{$json[\"message\"]}}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.openAi",
-      "typeVersion": 1.8,
-      "position": [
-        368,
-        -48
-      ],
-      "id": "97595cc6-4942-4e64-a951-f74b4cca0428",
-      "name": "Message a model",
-      "credentials": {
-        "openAiApi": {
-          "id": "y4jIJMtWYiH6DzZZ",
-          "name": "n8n free OpenAI API credits"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "modelId": {
-          "__rl": true,
-          "value": "gpt-4.1-mini",
-          "mode": "list",
-          "cachedResultName": "GPT-4.1-MINI"
-        },
-        "messages": {
-          "values": [
-            {
-              "content": "O usuário enviou um áudio. Gere uma resposta curta, amigável e adequada para ser falada em voz alta. \nNão inclua tags ou marcações. \nResponda sempre em tom natural, como se estivesse falando com um paciente.",
-              "role": "system"
-            },
-            {
-              "content": "=={{$json[\"message\"] || \"Mensagem de áudio recebida.\"}}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.openAi",
-      "typeVersion": 1.8,
-      "position": [
-        368,
-        192
-      ],
-      "id": "9953e4a8-a4fb-4143-ad97-e0c409852bfc",
-      "name": "Message a model1",
-      "credentials": {
-        "openAiApi": {
-          "id": "y4jIJMtWYiH6DzZZ",
-          "name": "n8n free OpenAI API credits"
-        }
-      }
     }
   ],
-  "pinData": {},
   "connections": {
-    "Webhook - Receber Ação (/appointments)": {
-      "main": [
-        [
-          {
-            "node": "Switch - Escolher Ação",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Switch - Escolher Ação": {
-      "main": [
-        [
-          {
-            "node": "Listar Agendamentos (GET)",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Criar Agendamento (POST)",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Cancelar Agendamento (DELETE)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Listar Agendamentos (GET)": {
-      "main": [
-        [
-          {
-            "node": "Responder - Listar",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Criar Agendamento (POST)": {
-      "main": [
-        [
-          {
-            "node": "Responder - Criar",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Cancelar Agendamento (DELETE)": {
-      "main": [
-        [
-          {
-            "node": "Responder - Cancelar",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Webhook - Chat Entrada (/chat)": {
       "main": [
         [
           {
-            "node": "IF - Mensagem é áudio?",
+            "node": "StoreMessage",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "RetrieveHistory",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Formatar Resposta (Texto)": {
+    "RetrieveHistory": {
       "main": [
         [
           {
-            "node": "Responder ao Chat",
+            "node": "ChatModel",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Gerar Áudio (TTS)": {
+    "ChatModel": {
       "main": [
         [
           {
-            "node": "Formatar Resposta (Áudio)",
+            "node": "CheckIfAudio",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Formatar Resposta (Áudio)": {
+    "CheckIfAudio": {
       "main": [
         [
           {
-            "node": "Responder ao Chat",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IF - Mensagem é áudio?": {
-      "main": [
-        [
-          {
-            "node": "Message a model",
+            "node": "FormatText",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Message a model1",
+            "node": "TTS",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Message a model": {
+    "TTS": {
       "main": [
         [
           {
-            "node": "Formatar Resposta (Texto)",
+            "node": "FormatAudio",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Message a model1": {
+    "FormatAudio": {
       "main": [
         [
           {
-            "node": "Gerar Áudio (TTS)",
+            "node": "Respond",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FormatText": {
+      "main": [
+        [
+          {
+            "node": "Respond",
             "type": "main",
             "index": 0
           }
@@ -467,15 +282,5 @@
       ]
     }
   },
-  "active": false,
-  "settings": {
-    "executionOrder": "v1"
-  },
-  "versionId": "14396963-953c-421c-b406-f9dd4beb5e3f",
-  "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "ed7ad79db1253a62b7d471afea67a238bfdac070e5b02a4f682ff9dcb64e4c37"
-  },
-  "id": "h9icQuxyR2K1V0yU",
-  "tags": []
+  "active": false
 }
