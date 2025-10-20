@@ -10,7 +10,6 @@ describe('AppointmentsController', () => {
     update: jest.fn(),
     remove: jest.fn(),
   };
-
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AppointmentsController],
